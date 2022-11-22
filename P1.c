@@ -6,7 +6,11 @@
 #include <stdio.h>
 #include <assert.h>
 
+int n[2];
 int q;
+int *shmptr;
+const int BUFF = 1e3;
+
 typedef struct thr_args {
     int matrix_num;     //0 or 1 corresponding to inp1.txt or inp2.txt
     int row_idx;        //starting row index for the thread
@@ -19,16 +23,15 @@ void *read_row(void *args) {
     // printf("Inside thread with tid: %ld\n", pthread_self());
     // printf("Matrix #: %d, Row #: %d\n", targs->matrix_num, targs->row_idx);
     for (int rc = 0; rc < targs->read_cnt; ++rc) {
-        int *buff = malloc(q * sizeof(int));
+        int offset = (targs->matrix_num * n[0] + (targs->row_idx + rc)) * q;
         for (int i = 0; i < q; ++i) {
-            fscanf(targs->ptr, "%d", &buff[i]);
+            fscanf(targs->ptr, "%d", (shmptr + offset + i));
             // printf("Tid: %ld, x = %d\n", pthread_self(), buff[i]);
         }
     }
 }
 
 int main(int argc, char **argv) {
-    int n[2];
     n[0] = atoi(argv[1]);
     q = atoi(argv[2]);
     n[1] = atoi(argv[3]);
@@ -47,7 +50,10 @@ int main(int argc, char **argv) {
         num_threads = n[0] + n[1];
     }
 
-    
+    key_t token = ftok("/", 10);
+    int shmid = shmget(token, BUFF, 0666|IPC_CREAT);
+    shmptr = shmat(shmid, 0, 0);
+
     if (num_threads == 1) {
         pthread_t tid;
         for (int mtx_num = 0; mtx_num < 2; ++mtx_num) {
@@ -90,6 +96,7 @@ int main(int argc, char **argv) {
         pthread_t tid[num_threads];
         int num_th[2];
         // Do we use float here (messy but more accurate)
+        // num_th[0] = (n[0] * num_threads + n[0] + n[1] - 1) / (n[0] + n[1]);
         num_th[0] = n[0] * num_threads / (n[0] + n[1]);
         if (num_th[0] == 0) {
             num_th[0] = 1;
@@ -97,9 +104,9 @@ int main(int argc, char **argv) {
             num_th[0] = num_threads - 1;
         }
         num_th[1] = num_threads - num_th[0];
-        for (int i = 0; i < 2; ++i) {
-            printf("num_th[%d]: %d\n", i, num_th[i]);
-        }
+        // for (int i = 0; i < 2; ++i) {
+        //     printf("num_th[%d]: %d\n", i, num_th[i]);
+        // }
         for (int mtx_num = 0; mtx_num < 2; ++mtx_num) {
             int row_cnt = (n[mtx_num] + num_th[mtx_num] - 1) / num_th[mtx_num];
             
@@ -147,4 +154,13 @@ int main(int argc, char **argv) {
         }
     }
 
+    // Print contents of shared memory
+    // for (int r = 0; r < n[0] + n[1]; ++r) {
+    //     for (int i = 0; i < q; ++i) {
+    //         printf("%d ", *(shmptr + q * r + i));
+    //     }
+    //     printf("\n");
+    // }
+
+    shmctl(shmid, IPC_RMID, NULL);
 }
