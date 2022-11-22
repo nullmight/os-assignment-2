@@ -1,15 +1,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <sys/shm.h>
 #include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/msg.h>
 #include <stdio.h>
 #include <assert.h>
 
 int n[2];
 int q;
 int *shmptr;
+int msgqid;
 const int BUFF = 1e3;
+const int MSGTYPE = 1;
+const int MSGSIZ = 8;
+const int MSGFLG = -1;
 
 typedef struct thr_args {
     int matrix_num;     //0 or 1 corresponding to inp1.txt or inp2.txt
@@ -17,6 +23,11 @@ typedef struct thr_args {
     int read_cnt;       //number of rows to be read
     FILE *ptr;          //should point to row_idx inside file containing matrix_num
 } thread_args;
+
+typedef struct msgbuf {
+    long type;
+    int matrix_num, row_idx;
+} row_info;
 
 void *read_row(void *args) {
     thread_args *targs = args;
@@ -28,6 +39,13 @@ void *read_row(void *args) {
             fscanf(targs->ptr, "%d", (shmptr + offset + i));
             // printf("Tid: %ld, x = %d\n", pthread_self(), buff[i]);
         }
+        row_info info = {
+            .type = MSGTYPE,
+            .matrix_num = targs->matrix_num,
+            .row_idx = targs->row_idx + rc
+        };
+        printf("P1: Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
+        msgsnd(msgqid, (void *)&info, MSGSIZ, MSGFLG);
     }
 }
 
@@ -50,9 +68,12 @@ int main(int argc, char **argv) {
         num_threads = n[0] + n[1];
     }
 
-    key_t token = ftok("/", 10);
-    int shmid = shmget(token, BUFF, 0666|IPC_CREAT);
+    key_t shmtoken = ftok("/", 10);
+    int shmid = shmget(shmtoken, BUFF, 0666|IPC_CREAT);
     shmptr = shmat(shmid, 0, 0);
+
+    key_t msgtoken = ftok("/", 110);
+    msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
     if (num_threads == 1) {
         pthread_t tid;
@@ -104,9 +125,12 @@ int main(int argc, char **argv) {
             num_th[0] = num_threads - 1;
         }
         num_th[1] = num_threads - num_th[0];
+
+        // Print num_th[0], num_th[1]
         // for (int i = 0; i < 2; ++i) {
         //     printf("num_th[%d]: %d\n", i, num_th[i]);
         // }
+
         for (int mtx_num = 0; mtx_num < 2; ++mtx_num) {
             int row_cnt = (n[mtx_num] + num_th[mtx_num] - 1) / num_th[mtx_num];
             
