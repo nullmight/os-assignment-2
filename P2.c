@@ -27,6 +27,10 @@ int main(int argc, char **argv) {
         printf("Invalid arguments!, argc = %d\n", argc);
         return 0;
     }
+    for (int i = 1; i <= 7; ++i)
+    {
+        printf("P2: args[%d]: %s\n", i, argv[i]);
+    }
 
     n[0] = atoi(argv[1]);
     q = atoi(argv[2]);
@@ -36,7 +40,7 @@ int main(int argc, char **argv) {
     int num_threads = atoi(argv[6]);
     int num_threads_o = atoi(argv[7]);
 
-    key_t shmtoken = ftok("/", 5);
+    key_t shmtoken = 1414;
     if (shmtoken == -1)
     {
         perror("P2: Key");
@@ -55,7 +59,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    key_t msgtoken = ftok("/", 110);
+    key_t msgtoken = 4545;
     int msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
     for (int i = 0; i < n[0] + n[1]; ++i) {

@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-const int BUFF = 30;
+const int BUFF = 50;
 
 int n[2], q;
 char *in[2];
@@ -18,16 +18,16 @@ int main(int argc, char **argv) {
     in[1] = argv[5];
     out = argv[6];
 
-    for (int cnt = 1; cnt <= 5; ++cnt) {
+    for (int cnt = 1; cnt <= 1; ++cnt) {
         char *csv1 = malloc(BUFF);
         char *csv2 = malloc(BUFF);
-        snprintf(csv1, sizeof(csv1), "P1_%d.csv", cnt);
-        snprintf(csv2, sizeof(csv2), "P2_%d.csv", cnt);
+        snprintf(csv1, sizeof(csv1), "P1_(%d).csv", cnt);
+        snprintf(csv2, sizeof(csv2), "P2_(%d).csv", cnt);
 
-        for (int nt1 = 1; nt1 <= 2; ++nt1) {
+        for (int nt1 = 1; nt1 <= 1; ++nt1) {
             char *nt1_str = malloc(BUFF);
             snprintf(nt1_str, sizeof(nt1_str), "%d", nt1);
-            for (int nt2 = 1; nt2 <= 2; ++nt2) {
+            for (int nt2 = 1; nt2 <= 1; ++nt2) {
                 char *nt2_str = malloc(BUFF);
                 snprintf(nt2_str, sizeof(nt2_str), "%d", nt2);
 
