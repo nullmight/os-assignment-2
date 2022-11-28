@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+const int BUFF = 30;
+
 int n[2], q;
 char *in[2];
 char *out;
@@ -16,19 +18,28 @@ int main(int argc, char **argv) {
     in[1] = argv[5];
     out = argv[6];
 
-    char cnt_str[20];
-    char nt_str[10];
-    for (int cnt = 1; cnt <= 10; ++cnt) {
-        snprintf(cnt_str, sizeof(cnt_str), "P1_%d.csv", cnt);
-        for (int nt = 1; nt <= n[0] + n[1]; ++nt) {
-            snprintf(nt_str, sizeof(nt_str), "%d", nt);
-            if (fork() == 0) {
-                execlp("./P1.out", "P1", argv[1], argv[2], argv[3], in[0], in[1], cnt_str, nt_str, NULL);
+    for (int cnt = 1; cnt <= 5; ++cnt) {
+        char *csv1 = malloc(BUFF);
+        char *csv2 = malloc(BUFF);
+        snprintf(csv1, sizeof(csv1), "P1_%d.csv", cnt);
+        snprintf(csv2, sizeof(csv2), "P2_%d.csv", cnt);
+
+        for (int nt1 = 1; nt1 <= 2; ++nt1) {
+            char *nt1_str = malloc(BUFF);
+            snprintf(nt1_str, sizeof(nt1_str), "%d", nt1);
+            for (int nt2 = 1; nt2 <= 2; ++nt2) {
+                char *nt2_str = malloc(BUFF);
+                snprintf(nt2_str, sizeof(nt2_str), "%d", nt2);
+
+                if (fork() == 0) {
+                    execlp("./P1.out", "P1", argv[1], argv[2], argv[3], in[0], in[1], csv1, nt1_str, nt2_str, NULL);
+                }
+                if (fork() == 0) {
+                    execlp("./P2.out", "P2", argv[1], argv[2], argv[3], out, csv2, nt2_str, nt1_str, NULL);
+                }
+                wait(NULL);
+                wait(NULL);
             }
-            if (fork() == 0) {
-                execlp("./P2.out", "P2", argv[1], argv[2], argv[3], in[0], in[1], cnt_str, nt_str, NULL);
-            }
-            wait(NULL);
         }
         printf("Iteration %d completed\n", cnt);
     }

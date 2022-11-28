@@ -23,16 +23,23 @@ typedef struct msgbuf {
 } row_info;
 
 int main(int argc, char **argv) {
+    if (argc != 8) {
+        printf("Invalid arguments!, argc = %d\n", argc);
+        return 0;
+    }
+
     n[0] = atoi(argv[1]);
     q = atoi(argv[2]);
     n[1] = atoi(argv[3]);
     char *out = argv[4];
-    int num_threads = atoi(argv[5]);
+    char *csv = argv[5];
+    int num_threads = atoi(argv[6]);
+    int num_threads_o = atoi(argv[7]);
 
-    key_t shmtoken = ftok("/", 10);
+    key_t shmtoken = ftok("/", 5);
     if (shmtoken == -1)
     {
-        perror("P1: Key");
+        perror("P2: Key");
         return 1;
     }
     int shmid = shmget(shmtoken, BUFF, 0666 | IPC_CREAT);
@@ -44,7 +51,7 @@ int main(int argc, char **argv) {
     shmptr = shmat(shmid, 0, 0);
     if (shmptr == (void *)-1)
     {
-        perror("P1: Shared memory pointer");
+        perror("P2: Shared memory pointer");
         return 1;
     }
 
@@ -56,6 +63,13 @@ int main(int argc, char **argv) {
         msgrcv(msgqid, (void *)&info, MSGSIZ, MSGTYPE, MSGFLG);
         printf("Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
     }
-    
-    msgctl(msgqid, IPC_RMID, NULL); 
+    // Print contents of shared memory
+    for (int r = 0; r < n[0] + n[1]; ++r) {
+        for (int i = 0; i < q; ++i) {
+            printf("%d ", *(shmptr + q * r + i));
+        }
+        printf("\n");
+    }
+    msgctl(msgqid, IPC_RMID, NULL);
+    shmctl(shmid, IPC_RMID, NULL);
 }

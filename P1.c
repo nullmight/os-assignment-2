@@ -46,15 +46,14 @@ void *read_row(void *args) {
             .row_idx = targs->row_idx + rc
         };
         // printf("P1: Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
-        // msgsnd(msgqid, (void *)&info, MSGSIZ, MSGFLG);
+        msgsnd(msgqid, (void *)&info, MSGSIZ, MSGFLG);
     }
 }
 
 int main(int argc, char **argv) {
 
-    if (argc != 8) {
+    if (argc != 9) {
         printf("Invalid arguments!, argc = %d\n", argc);
-        printf("argv: %s\n", argv[1]);
         return 0;
     }
 
@@ -66,6 +65,7 @@ int main(int argc, char **argv) {
     in[1] = argv[5];
     char *csv = argv[6];
     int num_threads = atoi(argv[7]);
+    int num_threads_o = atoi(argv[8]);
 
     FILE *fp[2];
     for (int i = 0; i < 2; ++i) {
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
     }
     // printf("Num_threads: %d\n", num_threads);
 
-    key_t shmtoken = ftok("/", 10);
+    key_t shmtoken = ftok("/", 5);
     if (shmtoken == -1)
     {
         perror("P1: Key");
@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
     int shmid = shmget(shmtoken, BUFF, 0666 | IPC_CREAT);
     if (shmid == -1)
     {
-        perror("P2: Shared memory id");
+        perror("P1: Shared memory id");
         return 1;
     }
     shmptr = shmat(shmid, 0, 0);
@@ -111,11 +111,6 @@ int main(int argc, char **argv) {
             num_th[0] = num_threads - 1;
         }
         num_th[1] = num_threads - num_th[0];
-
-        // Print num_th[0], num_th[1]
-        // for (int i = 0; i < 2; ++i) {
-        //     printf("num_th[%d]: %d\n", i, num_th[i]);
-        // }
     } else {
         for (int i = 0; i < 2; ++i) {
             num_th[i] = 1;
@@ -203,6 +198,4 @@ int main(int argc, char **argv) {
     //     }
     //     printf("\n");
     // }
-
-    shmctl(shmid, IPC_RMID, NULL);
 }
