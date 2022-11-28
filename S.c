@@ -23,10 +23,10 @@ int main(int argc, char **argv) {
         snprintf(csv[0], sizeof(csv[0]), "P1_%d.csv", cnt);
         snprintf(csv[1], sizeof(csv[1]), "P2_%d.csv", cnt);
 
-        for (int nt1 = 1; nt1 <= 2; ++nt1) {
+        for (int nt1 = 1; nt1 <= n[0] + n[1]; ++nt1) {
             char *nt1_str = malloc(BUFF);
             snprintf(nt1_str, sizeof(nt1_str), "%d", nt1);
-            for (int nt2 = 1; nt2 <= 2; ++nt2) {
+            for (int nt2 = 1; nt2 <= n[0] * n[1]; ++nt2) {
                 char *nt2_str = malloc(BUFF);
                 snprintf(nt2_str, sizeof(nt2_str), "%d", nt2);
 

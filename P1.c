@@ -56,9 +56,9 @@ int main(int argc, char **argv) {
         printf("Invalid arguments!, argc = %d\n", argc);
         return 0;
     }
-    for (int i = 1; i <= 8; ++i) {
-        printf("P1: args[%d]: %s\n", i, argv[i]);
-    }
+    // for (int i = 1; i <= 8; ++i) {
+    //     printf("P1: args[%d]: %s\n", i, argv[i]);
+    // }
     n[0] = atoi(argv[1]);
     q = atoi(argv[2]);
     n[1] = atoi(argv[3]);
@@ -188,10 +188,10 @@ int main(int argc, char **argv) {
     if (num_threads == 1 && num_threads_o == 1) {
         FILE *fcsv = fopen(csv, "w+");
         fprintf(fcsv, "%s,%s,%s\n", "#(threads) in P1", "#(threads) in P2", "time taken(in ns)");
-        fprintf(fcsv, "%d,%lld,%lld\n", num_threads, num_threads_o, accum);
+        fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
     } else {
         FILE *fcsv = fopen(csv, "a");
-        fprintf(fcsv, "%d,%lld,%lld\n", num_threads, num_threads_o, accum);
+        fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
     }
     // Print contents of shared memory
     // for (int r = 0; r < n[0] + n[1]; ++r) {

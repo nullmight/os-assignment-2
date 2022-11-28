@@ -26,14 +26,22 @@ typedef struct msgbuf {
     int matrix_num, row_idx;
 } row_info;
 
-void mult_rows(int i, int j) {
+typedef struct thr_args
+{
+    int i, j;
+} thread_args;
+
+void *mult_rows(void *args) {
+    thread_args *targs = args;
+    int i = targs->i;
+    int j = targs->j;
     int sum = 0;
     int offset1 = i * q, offset2 = (n[0] + j) * q;
-    for (int k = 0; k < q; ++k)
-    {
+    for (int k = 0; k < q; ++k) {
         sum += (*(shmptr + offset1 + k)) * (*(shmptr + offset2 + k));
     }
     res[i][j] = sum;
+    // sem_post(&sem);
 }
 
 int main(int argc, char **argv) {
@@ -41,10 +49,10 @@ int main(int argc, char **argv) {
         printf("Invalid arguments!, argc = %d\n", argc);
         return 0;
     }
-    for (int i = 1; i <= 7; ++i)
-    {
-        printf("P2: args[%d]: %s\n", i, argv[i]);
-    }
+    // for (int i = 1; i <= 7; ++i)
+    // {
+    //     printf("P2: args[%d]: %s\n", i, argv[i]);
+    // }
 
     n[0] = atoi(argv[1]);
     q = atoi(argv[2]);
@@ -79,6 +87,7 @@ int main(int argc, char **argv) {
     int rcnt[2] = {0, 0};
     int rcvq[2][N];
     int tcnt = 0;
+    pthread_t tid[n[0] * n[1]];
 
     struct timespec start, stop;
     clock_gettime(CLOCK_REALTIME, &start);
@@ -90,19 +99,29 @@ int main(int argc, char **argv) {
         if (info.matrix_num == 0) {
             rcvq[0][rcnt[0]] = info.row_idx;
             for (int r = 0; r < rcnt[1]; ++r) {
-                mult_rows(rcvq[0][rcnt[0]], rcvq[1][r]);
+                // sem_wait(&sem)
+                thread_args *targs = malloc(sizeof(thread_args));
+                targs->i = rcvq[0][rcnt[0]];
+                targs->j = rcvq[1][r];
+                pthread_create(&tid[tcnt], NULL, mult_rows, (void *)targs);
                 tcnt++;
             }
             rcnt[0]++;
         } else {
             rcvq[1][rcnt[1]] = info.row_idx;
-            for (int r = 0; r < rcnt[0]; ++r)
-            {
-                mult_rows(rcvq[0][r], rcvq[1][rcnt[1]]);
+            for (int r = 0; r < rcnt[0]; ++r) {
+                // sem_wait(&sem);
+                thread_args *targs = malloc(sizeof(thread_args));
+                targs->i = rcvq[0][r];
+                targs->j = rcvq[1][rcnt[1]];
+                pthread_create(&tid[tcnt], NULL, mult_rows, (void *)targs);
                 tcnt++;
             }
             rcnt[1]++;
         }
+    }
+    for (int i = 0; i < n[0] * n[1]; ++i) {
+        pthread_join(tid[i], NULL);
     }
 
     clock_gettime(CLOCK_REALTIME, &stop);
@@ -114,6 +133,19 @@ int main(int argc, char **argv) {
         }
         printf("\n");
     }
+
+    if (num_threads == 1 && num_threads_o == 1)
+    {
+        FILE *fcsv = fopen(csv, "w+");
+        fprintf(fcsv, "%s,%s,%s\n", "#(threads) in P2", "#(threads) in P1", "time taken(in ns)");
+        fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
+    }
+    else
+    {
+        FILE *fcsv = fopen(csv, "a");
+        fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
+    }
+
     msgctl(msgqid, IPC_RMID, NULL);
     shmctl(shmid, IPC_RMID, NULL);
 }
