@@ -8,12 +8,14 @@
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
+#include <errno.h>
+#include <string.h>
 
 int n[2];
 int q;
 int *shmptr;
 int msgqid;
-const int BUFF = 1e9;
+const int BUFF = 1e4;
 const int MSGTYPE = 1;
 const int MSGSIZ = 8;
 const int MSGFLG = -1;
@@ -45,16 +47,15 @@ void *read_row(void *args) {
             .matrix_num = targs->matrix_num,
             .row_idx = targs->row_idx + rc
         };
-        // printf("P1: Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
-        // msgsnd(msgqid, (void *)&info, MSGSIZ, MSGFLG);
+        // printf("P1 sent: Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
+        msgsnd(msgqid, (void *)&info, MSGSIZ, MSGFLG);
     }
 }
 
 int main(int argc, char **argv) {
 
-    if (argc != 8) {
+    if (argc != 10) {
         printf("Invalid arguments!, argc = %d\n", argc);
-        printf("argv: %s\n", argv[1]);
         return 0;
     }
 
@@ -66,6 +67,9 @@ int main(int argc, char **argv) {
     in[1] = argv[5];
     char *csv = argv[6];
     int num_threads = atoi(argv[7]);
+    int num_threads_o = atoi(argv[8]);
+    char *save = argv[9];
+    // printf("In P1 with %d threads\n", num_threads);
 
     FILE *fp[2];
     for (int i = 0; i < 2; ++i) {
@@ -76,11 +80,22 @@ int main(int argc, char **argv) {
     if (num_threads > n[0] + n[1]) {
         num_threads = n[0] + n[1];
     }
-    // printf("Num_threads: %d\n", num_threads);
 
     key_t shmtoken = ftok("/", 10);
-    int shmid = shmget(shmtoken, BUFF, 0666|IPC_CREAT);
+    if (shmtoken == -1) {
+        perror("P1: Key");
+        return 1;
+    }
+    int shmid = shmget(shmtoken, BUFF, 0666 | IPC_CREAT);
+    if (shmid == -1) {
+        perror("P2: Shared memory id");
+        return 1;
+    }
     shmptr = shmat(shmid, 0, 0);
+    if (shmptr == (void *)-1) {
+        perror("P1: Shared memory pointer");
+        return 1;
+    }
 
     key_t msgtoken = ftok("/", 110);
     msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
@@ -102,9 +117,7 @@ int main(int argc, char **argv) {
         //     printf("num_th[%d]: %d\n", i, num_th[i]);
         // }
     } else {
-        for (int i = 0; i < 2; ++i) {
-            num_th[i] = n[i];
-        }
+        num_th[0] = num_th[1] = 1;
     }
 
     FILE *fp_arr[num_th[0] + num_th[1]];
@@ -173,13 +186,16 @@ int main(int argc, char **argv) {
     long long accum = (stop.tv_sec - start.tv_sec) * 1000000000LL + (stop.tv_nsec - start.tv_nsec);
     // printf("Time: %lld\n", accum);
 
-    if (num_threads == 1) {
-        FILE *fcsv = fopen(csv, "w+");
-        fprintf(fcsv, "%s,%s\n", "#(threads)", "time taken(in ns)");
-        fprintf(fcsv, "%d,%lld\n", num_threads, accum);
-    } else {
-        FILE *fcsv = fopen(csv, "a");
-        fprintf(fcsv, "%d,%lld\n", num_threads, accum);
+    if (strcmp(save, "True") == 0) {
+        if (num_threads == 1 && num_threads_o == 1) {
+            // printf("Inside");
+            FILE *fcsv = fopen(csv, "w+");
+            fprintf(fcsv, "%s,%s,%s\n", "#(threads) in P2", "#(threads) in P1", "time taken(in ns)");
+            fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
+        } else {
+            FILE *fcsv = fopen(csv, "a");
+            fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
+        }
     }
     // Print contents of shared memory
     // for (int r = 0; r < n[0] + n[1]; ++r) {
@@ -188,6 +204,4 @@ int main(int argc, char **argv) {
     //     }
     //     printf("\n");
     // }
-
-    shmctl(shmid, IPC_RMID, NULL);
 }
