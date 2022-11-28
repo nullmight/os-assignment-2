@@ -7,6 +7,8 @@
 #include <sys/msg.h>
 #include <stdio.h>
 #include <assert.h>
+#include <sys/sem.h>
+#include <semaphore.h>
 
 #define N 50
 
@@ -20,6 +22,7 @@ const int MSGSIZ = 8;
 const int MSGFLG = 0;
 
 int res[N][N];
+sem_t sem;
 
 typedef struct msgbuf {
     long type;
@@ -41,7 +44,7 @@ void *mult_rows(void *args) {
         sum += (*(shmptr + offset1 + k)) * (*(shmptr + offset2 + k));
     }
     res[i][j] = sum;
-    // sem_post(&sem);
+    sem_post(&sem);
 }
 
 int main(int argc, char **argv) {
@@ -61,6 +64,8 @@ int main(int argc, char **argv) {
     char *csv = argv[5];
     int num_threads = atoi(argv[6]);
     int num_threads_o = atoi(argv[7]);
+
+    sem_init(&sem, 0, num_threads);
 
     key_t shmtoken = 1414;
     if (shmtoken == -1)
@@ -99,7 +104,7 @@ int main(int argc, char **argv) {
         if (info.matrix_num == 0) {
             rcvq[0][rcnt[0]] = info.row_idx;
             for (int r = 0; r < rcnt[1]; ++r) {
-                // sem_wait(&sem)
+                sem_wait(&sem);
                 thread_args *targs = malloc(sizeof(thread_args));
                 targs->i = rcvq[0][rcnt[0]];
                 targs->j = rcvq[1][r];
@@ -110,7 +115,7 @@ int main(int argc, char **argv) {
         } else {
             rcvq[1][rcnt[1]] = info.row_idx;
             for (int r = 0; r < rcnt[0]; ++r) {
-                // sem_wait(&sem);
+                sem_wait(&sem);
                 thread_args *targs = malloc(sizeof(thread_args));
                 targs->i = rcvq[0][r];
                 targs->j = rcvq[1][rcnt[1]];
@@ -146,6 +151,7 @@ int main(int argc, char **argv) {
         fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
     }
 
+    sem_destroy(&sem);
     msgctl(msgqid, IPC_RMID, NULL);
     shmctl(shmid, IPC_RMID, NULL);
 }
