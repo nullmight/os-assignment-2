@@ -7,12 +7,13 @@
 #include <sys/msg.h>
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
 
 int n[2];
 int q;
 int *shmptr;
 int msgqid;
-const int BUFF = 1e3;
+const int BUFF = 1e9;
 const int MSGTYPE = 1;
 const int MSGSIZ = 8;
 const int MSGFLG = -1;
@@ -44,12 +45,13 @@ void *read_row(void *args) {
             .matrix_num = targs->matrix_num,
             .row_idx = targs->row_idx + rc
         };
-        printf("P1: Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
-        msgsnd(msgqid, (void *)&info, MSGSIZ, MSGFLG);
+        // printf("P1: Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
+        // msgsnd(msgqid, (void *)&info, MSGSIZ, MSGFLG);
     }
 }
 
 int main(int argc, char **argv) {
+
     n[0] = atoi(argv[1]);
     q = atoi(argv[2]);
     n[1] = atoi(argv[3]);
@@ -75,49 +77,10 @@ int main(int argc, char **argv) {
     key_t msgtoken = ftok("/", 110);
     msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
-    if (num_threads == 1) {
-        pthread_t tid;
-        for (int mtx_num = 0; mtx_num < 2; ++mtx_num) {
-            
-            int tot_rows = n[mtx_num];
-            int row_cnt = 1;
+    pthread_t tid[num_threads];
 
-            FILE *fp_arr[tot_rows];
-            fp_arr[0] = fp[mtx_num];
-            
-            int offset = 0;
-            for (int i = 1; i < tot_rows; ++i) {
-                FILE *ptr = fopen(in[mtx_num], "r");
-                assert(ptr != NULL);
-                fseek(ptr, offset, SEEK_SET);
-
-                int line_cnt = 0;
-                while (line_cnt < row_cnt) {
-                    int x = fgetc(ptr);
-                    // printf("%c", x);
-                    line_cnt += x == '\n' || x == EOF;
-                    offset++;
-                    // assert(x != EOF);
-                }
-
-                fp_arr[i] = ptr;
-            }
-
-            for (int i = 0; i < tot_rows; ++i) {
-                thread_args *targs = malloc(sizeof(thread_args));
-                targs->matrix_num = mtx_num;
-                targs->row_idx = i;
-                targs->read_cnt = row_cnt;
-                targs->ptr = fp_arr[i];
-                pthread_create(&tid, NULL, read_row, (void *)targs);
-                pthread_join(tid, NULL);
-            }
-        }
-    } else {
-        pthread_t tid[num_threads];
-        int num_th[2];
-        // Do we use float here (messy but more accurate)
-        // num_th[0] = (n[0] * num_threads + n[0] + n[1] - 1) / (n[0] + n[1]);
+    int num_th[2];
+    if (num_threads > 1) {
         num_th[0] = n[0] * num_threads / (n[0] + n[1]);
         if (num_th[0] == 0) {
             num_th[0] = 1;
@@ -130,54 +93,86 @@ int main(int argc, char **argv) {
         // for (int i = 0; i < 2; ++i) {
         //     printf("num_th[%d]: %d\n", i, num_th[i]);
         // }
+    } else {
+        for (int i = 0; i < 2; ++i) {
+            num_th[i] = n[i];
+        }
+    }
 
-        for (int mtx_num = 0; mtx_num < 2; ++mtx_num) {
-            int row_cnt = (n[mtx_num] + num_th[mtx_num] - 1) / num_th[mtx_num];
-            
-            FILE *fp_arr[num_th[mtx_num]];
-            fp_arr[0] = fp[mtx_num];
-            int offset = 0;
-            
-            for (int i = 1; i < num_th[mtx_num]; ++i) {
-                FILE *ptr = fopen(in[mtx_num], "r");
-                assert(ptr != NULL);
-                
-                fseek(ptr, offset, SEEK_SET);
-                
-                int line_cnt = 0;
-                while (line_cnt < row_cnt) {
-                    int x = fgetc(ptr);
-                    // printf("%c", x);
-                    line_cnt += x == '\n' || x == EOF;
-                    offset++;
-                    // assert(x != EOF);
-                }
+    FILE *fp_arr[num_th[0] + num_th[1]];
 
-                fp_arr[i] = ptr;
+    for (int mtx_num = 0; mtx_num < 2; ++mtx_num) {
+        int row_cnt = (n[mtx_num] + num_th[mtx_num] - 1) / num_th[mtx_num];
+
+        int fp_off = mtx_num * num_th[0];
+        fp_arr[fp_off] = fp[mtx_num];
+        int offset = 0;
+        
+        for (int i = 1; i < num_th[mtx_num]; ++i) {
+            FILE *ptr = fopen(in[mtx_num], "r");
+            assert(ptr != NULL);
+            
+            fseek(ptr, offset, SEEK_SET);
+            
+            int line_cnt = 0;
+            while (line_cnt < row_cnt) {
+                int x = fgetc(ptr);
+                // printf("%c", x);
+                line_cnt += x == '\n' || x == EOF;
+                offset++;
+                // assert(x != EOF);
             }
 
-            int rem = n[mtx_num];
-            int tid_off = mtx_num * num_th[0];
+            fp_arr[fp_off + i] = ptr;
+        }
+    }
 
-            for (int i = 0; i < num_th[mtx_num]; ++i) {
-                thread_args *targs = malloc(sizeof(thread_args));
-                
-                targs->matrix_num = mtx_num;
-                targs->row_idx = i * row_cnt;
-                targs->read_cnt = rem < row_cnt ? rem : row_cnt;
-                targs->ptr = fp_arr[i];
-                
+    struct timespec start, stop;
+    clock_gettime(CLOCK_REALTIME, &start);
+
+    for (int mtx_num = 0; mtx_num < 2; ++mtx_num) {
+        int row_cnt = (n[mtx_num] + num_th[mtx_num] - 1) / num_th[mtx_num];
+        int rem = n[mtx_num];
+        int fp_off = mtx_num * num_th[0];
+        int tid_off = mtx_num * num_th[0];
+
+        for (int i = 0; i < num_th[mtx_num]; ++i) {
+            thread_args *targs = malloc(sizeof(thread_args));
+            
+            targs->matrix_num = mtx_num;
+            targs->row_idx = i * row_cnt;
+            targs->read_cnt = rem < row_cnt ? rem : row_cnt;
+            targs->ptr = fp_arr[fp_off + i];
+            
+            if (num_threads == 1) {
+                pthread_create(&tid[0], NULL, read_row, (void *)targs);
+                pthread_join(tid[0], NULL);
+            } else {
                 pthread_create(&tid[tid_off + i], NULL, read_row, (void *)targs);
-
                 rem -= row_cnt;
             }
-        }
 
+        }
+    }
+
+    if (num_threads > 1) {
         for (int i = 0; i < num_threads; ++i) {
             pthread_join(tid[i], NULL);
         }
     }
 
+    clock_gettime(CLOCK_REALTIME, &stop);
+    long long accum = (stop.tv_sec - start.tv_sec) * 1000000000LL + (stop.tv_nsec - start.tv_nsec);
+    // printf("Time: %lld\n", accum);
+
+    if (num_threads == 1) {
+        FILE *fcsv = fopen("bench.csv", "w+");
+        fprintf(fcsv, "%s, %s\n", "#(threads)", "time taken(in ns)");
+        fprintf(fcsv, "%d,%lld\n", num_threads, accum);
+    } else {
+        FILE *fcsv = fopen("bench.csv", "a");
+        fprintf(fcsv, "%d,%lld\n", num_threads, accum);
+    }
     // Print contents of shared memory
     // for (int r = 0; r < n[0] + n[1]; ++r) {
     //     for (int i = 0; i < q; ++i) {
