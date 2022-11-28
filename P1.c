@@ -52,13 +52,20 @@ void *read_row(void *args) {
 
 int main(int argc, char **argv) {
 
+    if (argc != 8) {
+        printf("Invalid arguments!, argc = %d\n", argc);
+        printf("argv: %s\n", argv[1]);
+        return 0;
+    }
+
     n[0] = atoi(argv[1]);
     q = atoi(argv[2]);
     n[1] = atoi(argv[3]);
     char *in[2];
     in[0] = argv[4];
     in[1] = argv[5];
-    int num_threads = atoi(argv[6]);
+    char *csv = argv[6];
+    int num_threads = atoi(argv[7]);
 
     FILE *fp[2];
     for (int i = 0; i < 2; ++i) {
@@ -69,6 +76,7 @@ int main(int argc, char **argv) {
     if (num_threads > n[0] + n[1]) {
         num_threads = n[0] + n[1];
     }
+    // printf("Num_threads: %d\n", num_threads);
 
     key_t shmtoken = ftok("/", 10);
     int shmid = shmget(shmtoken, BUFF, 0666|IPC_CREAT);
@@ -166,11 +174,11 @@ int main(int argc, char **argv) {
     // printf("Time: %lld\n", accum);
 
     if (num_threads == 1) {
-        FILE *fcsv = fopen("bench.csv", "w+");
-        fprintf(fcsv, "%s, %s\n", "#(threads)", "time taken(in ns)");
+        FILE *fcsv = fopen(csv, "w+");
+        fprintf(fcsv, "%s,%s\n", "#(threads)", "time taken(in ns)");
         fprintf(fcsv, "%d,%lld\n", num_threads, accum);
     } else {
-        FILE *fcsv = fopen("bench.csv", "a");
+        FILE *fcsv = fopen(csv, "a");
         fprintf(fcsv, "%d,%lld\n", num_threads, accum);
     }
     // Print contents of shared memory
