@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define N 50
+
 int n[2];
 int q;
 int *shmptr;
@@ -17,10 +19,22 @@ const long int MSGTYPE = 0;
 const int MSGSIZ = 8;
 const int MSGFLG = 0;
 
+int res[N][N];
+
 typedef struct msgbuf {
     long type;
     int matrix_num, row_idx;
 } row_info;
+
+void mult_rows(int i, int j) {
+    int sum = 0;
+    int offset1 = i * q, offset2 = (n[0] + j) * q;
+    for (int k = 0; k < q; ++k)
+    {
+        sum += (*(shmptr + offset1 + k)) * (*(shmptr + offset2 + k));
+    }
+    res[i][j] = sum;
+}
 
 int main(int argc, char **argv) {
     if (argc != 8) {
@@ -62,15 +76,41 @@ int main(int argc, char **argv) {
     key_t msgtoken = 4545;
     int msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
+    int rcnt[2] = {0, 0};
+    int rcvq[2][N];
+    int tcnt = 0;
+
+    struct timespec start, stop;
+    clock_gettime(CLOCK_REALTIME, &start);
+    
     for (int i = 0; i < n[0] + n[1]; ++i) {
         row_info info;
         msgrcv(msgqid, (void *)&info, MSGSIZ, MSGTYPE, MSGFLG);
-        printf("Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
+        // printf("Matrix #: %d, Row #: %d\n", info.matrix_num, info.row_idx);
+        if (info.matrix_num == 0) {
+            rcvq[0][rcnt[0]] = info.row_idx;
+            for (int r = 0; r < rcnt[1]; ++r) {
+                mult_rows(rcvq[0][rcnt[0]], rcvq[1][r]);
+                tcnt++;
+            }
+            rcnt[0]++;
+        } else {
+            rcvq[1][rcnt[1]] = info.row_idx;
+            for (int r = 0; r < rcnt[0]; ++r)
+            {
+                mult_rows(rcvq[0][r], rcvq[1][rcnt[1]]);
+                tcnt++;
+            }
+            rcnt[1]++;
+        }
     }
+
+    clock_gettime(CLOCK_REALTIME, &stop);
+    long long accum = (stop.tv_sec - start.tv_sec) * 1000000000LL + (stop.tv_nsec - start.tv_nsec);
     // Print contents of shared memory
-    for (int r = 0; r < n[0] + n[1]; ++r) {
-        for (int i = 0; i < q; ++i) {
-            printf("%d ", *(shmptr + q * r + i));
+    for (int i = 0; i < n[0]; ++i) {
+        for (int j = 0; j < n[1]; ++j) {
+            printf("%d ", res[i][j]);
         }
         printf("\n");
     }

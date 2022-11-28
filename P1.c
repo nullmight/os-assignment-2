@@ -185,13 +185,13 @@ int main(int argc, char **argv) {
     long long accum = (stop.tv_sec - start.tv_sec) * 1000000000LL + (stop.tv_nsec - start.tv_nsec);
     // printf("Time: %lld\n", accum);
 
-    if (num_threads == 1) {
+    if (num_threads == 1 && num_threads_o == 1) {
         FILE *fcsv = fopen(csv, "w+");
-        fprintf(fcsv, "%s,%s\n", "#(threads)", "time taken(in ns)");
-        fprintf(fcsv, "%d,%lld\n", num_threads, accum);
+        fprintf(fcsv, "%s,%s,%s\n", "#(threads) in P1", "#(threads) in P2", "time taken(in ns)");
+        fprintf(fcsv, "%d,%lld,%lld\n", num_threads, num_threads_o, accum);
     } else {
         FILE *fcsv = fopen(csv, "a");
-        fprintf(fcsv, "%d,%lld\n", num_threads, accum);
+        fprintf(fcsv, "%d,%lld,%lld\n", num_threads, num_threads_o, accum);
     }
     // Print contents of shared memory
     // for (int r = 0; r < n[0] + n[1]; ++r) {
