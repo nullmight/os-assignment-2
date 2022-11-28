@@ -21,7 +21,7 @@ const long int MSGTYPE = 0;
 const int MSGSIZ = 8;
 const int MSGFLG = 0;
 
-int res[N][N];
+long long res[N][N];
 sem_t sem;
 
 typedef struct msgbuf {
@@ -38,10 +38,10 @@ void *mult_rows(void *args) {
     thread_args *targs = args;
     int i = targs->i;
     int j = targs->j;
-    int sum = 0;
+    long long sum = 0;
     int offset1 = i * q, offset2 = (n[0] + j) * q;
     for (int k = 0; k < q; ++k) {
-        sum += (*(shmptr + offset1 + k)) * (*(shmptr + offset2 + k));
+        sum += (*(shmptr + offset1 + k)) * 1LL * (*(shmptr + offset2 + k));
     }
     res[i][j] = sum;
     sem_post(&sem);
@@ -131,13 +131,17 @@ int main(int argc, char **argv) {
 
     clock_gettime(CLOCK_REALTIME, &stop);
     long long accum = (stop.tv_sec - start.tv_sec) * 1000000000LL + (stop.tv_nsec - start.tv_nsec);
-    // Print contents of shared memory
+    
+    FILE *fp = fopen(out, "w+");
+    // Print output matrix to out
     for (int i = 0; i < n[0]; ++i) {
         for (int j = 0; j < n[1]; ++j) {
-            printf("%d ", res[i][j]);
+            fprintf(fp, "%lld", res[i][j]);
+            if (j + 1 < n[1]) fprintf(fp, " ");
+            else fprintf(fp, "\n");
         }
-        printf("\n");
     }
+    fclose(fp);
 
     if (num_threads == 1 && num_threads_o == 1)
     {
