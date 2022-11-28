@@ -13,7 +13,7 @@ int n[2];
 int q;
 int *shmptr;
 int msgqid;
-const int BUFF = 512;
+const int BUFF = 128 * 1024;
 const int MSGTYPE = 1;
 const int MSGSIZ = 8;
 const int MSGFLG = -1;
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
 
     if (num_threads == 1 && num_threads_o == 1) {
         FILE *fcsv = fopen(csv, "w+");
-        fprintf(fcsv, "%s,%s,%s\n", "#(threads) in P1", "#(threads) in P2", "time taken(in ns)");
+        fprintf(fcsv, "%s,%s,%s\n", "P1", "P2", "Time");
         fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
     } else {
         FILE *fcsv = fopen(csv, "a");

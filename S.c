@@ -38,7 +38,21 @@ int main(int argc, char **argv) {
                 }
                 wait(NULL);
                 wait(NULL);
+
+                if (nt2 >= 25)
+                    nt2 += 9;
+                if (nt2 >= 100)
+                    nt2 += 90;
+                if (nt2 >= 1000)
+                    nt2 += 900;
             }
+
+            if (nt1 >= 25)
+                nt1 += 9;
+            if (nt1 >= 100)
+                nt1 += 90;
+            if (nt1 >= 1000)
+                nt1 += 900;
         }
         printf("Iteration %d completed\n", cnt);
     }
