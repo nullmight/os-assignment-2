@@ -19,11 +19,14 @@ int main(int argc, char **argv) {
     char cnt_str[20];
     char nt_str[10];
     for (int cnt = 1; cnt <= 10; ++cnt) {
-        snprintf(cnt_str, sizeof(cnt_str), "P1_bench_%d.csv", cnt);
+        snprintf(cnt_str, sizeof(cnt_str), "P1_%d.csv", cnt);
         for (int nt = 1; nt <= n[0] + n[1]; ++nt) {
             snprintf(nt_str, sizeof(nt_str), "%d", nt);
             if (fork() == 0) {
                 execlp("./P1.out", "P1", argv[1], argv[2], argv[3], in[0], in[1], cnt_str, nt_str, NULL);
+            }
+            if (fork() == 0) {
+                execlp("./P2.out", "P2", argv[1], argv[2], argv[3], in[0], in[1], cnt_str, nt_str, NULL);
             }
             wait(NULL);
         }

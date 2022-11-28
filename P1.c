@@ -79,8 +79,23 @@ int main(int argc, char **argv) {
     // printf("Num_threads: %d\n", num_threads);
 
     key_t shmtoken = ftok("/", 10);
-    int shmid = shmget(shmtoken, BUFF, 0666|IPC_CREAT);
+    if (shmtoken == -1)
+    {
+        perror("P1: Key");
+        return 1;
+    }
+    int shmid = shmget(shmtoken, BUFF, 0666 | IPC_CREAT);
+    if (shmid == -1)
+    {
+        perror("P2: Shared memory id");
+        return 1;
+    }
     shmptr = shmat(shmid, 0, 0);
+    if (shmptr == (void *)-1)
+    {
+        perror("P1: Shared memory pointer");
+        return 1;
+    }
 
     key_t msgtoken = ftok("/", 110);
     msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
@@ -103,7 +118,7 @@ int main(int argc, char **argv) {
         // }
     } else {
         for (int i = 0; i < 2; ++i) {
-            num_th[i] = n[i];
+            num_th[i] = 1;
         }
     }
 
