@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     in[1] = argv[5];
     out = argv[6];
 
-    for (int cnt = 1; cnt <= 1; ++cnt) {
+    for (int cnt = 1; cnt <= 5; ++cnt) {
         char *csv1 = malloc(BUFF);
         char *csv2 = malloc(BUFF);
         snprintf(csv1, sizeof(csv1), "P1_(%d).csv", cnt);

@@ -12,7 +12,7 @@ int n[2];
 int q;
 int *shmptr;
 int msgqid;
-const int BUFF = 1e3;
+const int BUFF = 512;
 const long int MSGTYPE = 0;
 const int MSGSIZ = 8;
 const int MSGFLG = 0;
