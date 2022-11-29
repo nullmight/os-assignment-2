@@ -5,8 +5,12 @@ gcc P2.c -o P2.out -lpthread
 gcc S.c -o S.out
 gcc transpose.c -o transpose.out
 
-array=(10 50 100)
+array=(5 50)
 for n in "${array[@]}"; do
+    rm TA_P1_1.csv
+    rm TA_P1_2.csv
+    rm TA_P2_1.csv
+    rm TA_P2_2.csv
     q=$n
     m=$n
     python3 MatrixGen.py $n $q $m

@@ -50,7 +50,10 @@ void *mult_rows(void *args) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 8) {
+    struct timespec ta_start, ta_stop;
+    clock_gettime(CLOCK_REALTIME, &ta_start);
+
+    if (argc != 9) {
         printf("Invalid arguments!, argc = %d\n", argc);
         return 0;
     }
@@ -66,6 +69,7 @@ int main(int argc, char **argv) {
     char *csv = argv[5];
     int num_threads = atoi(argv[6]);
     int num_threads_o = atoi(argv[7]);
+    char *ta_fname = argv[8];
 
     // sem_init(&sem, 0, num_threads);
     available = num_threads;
@@ -179,6 +183,20 @@ int main(int argc, char **argv) {
     // sem_destroy(&sem);
     msgctl(msgqid, IPC_RMID, NULL);
     shmctl(shmid, IPC_RMID, NULL);
-    
+
+
+    clock_gettime(CLOCK_REALTIME, &ta_stop);
+    long long ta_time = (ta_stop.tv_sec - ta_start.tv_sec) * 1000000000LL + (ta_stop.tv_nsec - ta_start.tv_nsec);
+    FILE* ta_fp;
+    if (access(ta_fname, F_OK) != 0) {
+        ta_fp = fopen(ta_fname, "w+");
+        fprintf(ta_fp, "%s,%s\n", "Size", "Time");
+        fprintf(ta_fp, "%d,%lld\n", q, ta_time);
+    } else {
+        ta_fp = fopen(ta_fname, "a");
+        fprintf(ta_fp, "%d,%lld\n", q, ta_time);
+    }
+    // printf("P2 completed for %d, %d.\n", num_threads_o, num_threads);
+
     sptr[1] = 0;
 }

@@ -51,8 +51,10 @@ void *read_row(void *args) {
 }
 
 int main(int argc, char **argv) {
+    struct timespec ta_start, ta_stop;
+    clock_gettime(CLOCK_REALTIME, &ta_start);
 
-    if (argc != 9) {
+    if (argc != 10) {
         printf("Invalid arguments!, argc = %d\n", argc);
         return 0;
     }
@@ -68,13 +70,14 @@ int main(int argc, char **argv) {
     char *csv = argv[6];
     int num_threads = atoi(argv[7]);
     int num_threads_o = atoi(argv[8]);
+    char *ta_fname = argv[9];
 
     FILE *fp[2];
     for (int i = 0; i < 2; ++i) {
         fp[i] = fopen(in[i], "r");
         assert(fp[i] != NULL);
     }
-    
+
     if (num_threads > n[0] + n[1]) {
         num_threads = n[0] + n[1];
     }
@@ -201,6 +204,18 @@ int main(int argc, char **argv) {
     } else {
         FILE *fcsv = fopen(csv, "a");
         fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
+    }
+
+    clock_gettime(CLOCK_REALTIME, &ta_stop);
+    long long ta_time = (ta_stop.tv_sec - ta_start.tv_sec) * 1000000000LL + (ta_stop.tv_nsec - ta_start.tv_nsec);
+    FILE *ta_fp;
+    if (access(ta_fname, F_OK) != 0) {
+        ta_fp = fopen(ta_fname, "w+");
+        fprintf(ta_fp, "%s,%s\n", "Size", "Time");
+        fprintf(ta_fp, "%d,%lld\n", q, ta_time);
+    } else {
+        ta_fp = fopen(ta_fname, "a");
+        fprintf(ta_fp, "%d,%lld\n", q, ta_time);
     }
 
     sptr[0] = 0;
