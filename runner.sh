@@ -3,6 +3,7 @@
 gcc P1.c -o P1.out -lpthread
 gcc P2.c -o P2.out -lpthread
 gcc S.c -o S.out
+gcc transpose.c -o transpose.out
 
 array=(10)
 for n in "${array[@]}"; do

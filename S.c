@@ -21,6 +21,11 @@ int main(int argc, char **argv) {
     in[1] = argv[5];
     out = argv[6];
 
+    if (fork() == 0) {
+        execlp("./transpose.out", "transpose", in[1], argv[2], argv[3], NULL);
+    }
+    wait(NULL);
+
     int *sptr;
     int sid;
     key_t stoken = 1832;
@@ -36,7 +41,6 @@ int main(int argc, char **argv) {
         perror("Sched : Shared memory pointer");
         return 1;
     }
-    int time_quantum = 1000;
 
     for (int time_quantum = 1000; time_quantum <= 2000; time_quantum += 1000) {
         char csv[2][20];

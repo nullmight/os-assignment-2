@@ -19,7 +19,6 @@ def genMatrix():
     print(mat2)
     np.savetxt("inp2.txt",mat2,fmt='%i')
 
-
     matRes = np.matmul(mat,mat2)
     print(matRes)
     print(matRes.shape)
