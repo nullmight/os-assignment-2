@@ -1,16 +1,31 @@
 #!/usr/bin/env bash
 
+
+rm TA_P1_1.csv
+rm TA_P1_2.csv
+rm TA_P2_1.csv
+rm TA_P2_2.csv
+
+
 gcc P1.c -o P1.out -lpthread
 gcc P2.c -o P2.out -lpthread
 gcc S.c -o S.out
 gcc transpose.c -o transpose.out
 
-array=(5 50)
+array=(50)
 for n in "${array[@]}"; do
-    rm TA_P1_1.csv
-    rm TA_P1_2.csv
-    rm TA_P2_1.csv
-    rm TA_P2_2.csv
+    rm P1_1_1.csv
+    rm P1_1_2.csv
+    rm P1_1_3.csv
+    rm P1_2_1.csv
+    rm P1_2_2.csv
+    rm P1_2_3.csv
+    rm P2_1_1.csv
+    rm P2_1_2.csv
+    rm P2_1_3.csv
+    rm P2_2_1.csv
+    rm P2_2_2.csv
+    rm P2_2_3.csv
     q=$n
     m=$n
     python3 MatrixGen.py $n $q $m

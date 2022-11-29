@@ -83,39 +83,39 @@ int main(int argc, char **argv) {
 
                     sptr[0] = 1;
                     sptr[1] = 1;
-                    // while (sptr[0] && sptr[1])
-                    // {
-                    //     if (sptr[0])
-                    //     {
-                    //         // clock_gettime(CLOCK_REALTIME, &wt_start1);
-                    //         // printf("Switching to p2\n");
-                    //         kill(p1, SIGSTOP);
-                    //         kill(p2, SIGCONT);
-                    //         usleep(time_quantum);
-                    //         // clock_gettime(CLOCK_REALTIME, &wt_stop1);
-                    //         // wt_sum1 += (wt_stop1.tv_sec - wt_start1.tv_sec) * 1000000000LL + (wt_stop1.tv_nsec - wt_start1.tv_nsec);
-                    //     }
-                    //     if (sptr[1])
-                    //     {
-                    //         // clock_gettime(CLOCK_REALTIME, &wt_start2);
-                    //         // printf("Switching to p1\n");
-                    //         kill(p2, SIGSTOP);
-                    //         kill(p1, SIGCONT);
-                    //         usleep(time_quantum);
-                    //         // clock_gettime(CLOCK_REALTIME, &wt_stop2);
-                    //         // wt_sum2 += (wt_stop2.tv_sec - wt_start2.tv_sec) * 1000000000LL + (wt_stop2.tv_nsec - wt_start2.tv_nsec);
-                    //     }
-                    // }
-                    // if (sptr[0])
-                    // {
-                    //     // printf("Continuing with p1\n");
-                    //     kill(p1, SIGCONT);
-                    // }
-                    // if (sptr[1])
-                    // {
-                    //     // printf("Continuing with p2\n");
-                    //     kill(p2, SIGCONT);
-                    // }
+                    while (sptr[0] && sptr[1])
+                    {
+                        if (sptr[0])
+                        {
+                            // clock_gettime(CLOCK_REALTIME, &wt_start1);
+                            // printf("Switching to p2\n");
+                            kill(p1, SIGSTOP);
+                            kill(p2, SIGCONT);
+                            usleep(time_quantum);
+                            // clock_gettime(CLOCK_REALTIME, &wt_stop1);
+                            // wt_sum1 += (wt_stop1.tv_sec - wt_start1.tv_sec) * 1000000000LL + (wt_stop1.tv_nsec - wt_start1.tv_nsec);
+                        }
+                        if (sptr[1])
+                        {
+                            // clock_gettime(CLOCK_REALTIME, &wt_start2);
+                            // printf("Switching to p1\n");
+                            kill(p2, SIGSTOP);
+                            kill(p1, SIGCONT);
+                            usleep(time_quantum);
+                            // clock_gettime(CLOCK_REALTIME, &wt_stop2);
+                            // wt_sum2 += (wt_stop2.tv_sec - wt_start2.tv_sec) * 1000000000LL + (wt_stop2.tv_nsec - wt_start2.tv_nsec);
+                        }
+                    }
+                    if (sptr[0])
+                    {
+                        // printf("Continuing with p1\n");
+                        kill(p1, SIGCONT);
+                    }
+                    if (sptr[1])
+                    {
+                        // printf("Continuing with p2\n");
+                        kill(p2, SIGCONT);
+                    }
 
                     wait(NULL);
                     wait(NULL);

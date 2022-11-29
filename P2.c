@@ -152,6 +152,7 @@ int main(int argc, char **argv) {
         }
     }
     for (int i = 0; i < n[0] * n[1]; ++i) {
+        if(tid[i]!=pthread_self())
         pthread_join(tid[i], NULL);
     }
 
