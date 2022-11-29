@@ -22,7 +22,8 @@ const int MSGSIZ = 8;
 const int MSGFLG = 0;
 
 long long res[N][N];
-sem_t sem;
+// sem_t sem;
+int available;
 
 typedef struct msgbuf {
     long type;
@@ -44,7 +45,8 @@ void *mult_rows(void *args) {
         sum += (*(shmptr + offset1 + k)) * 1LL * (*(shmptr + offset2 + k));
     }
     res[i][j] = sum;
-    sem_post(&sem);
+    // sem_post(&sem);
+    available++;
 }
 
 int main(int argc, char **argv) {
@@ -65,7 +67,8 @@ int main(int argc, char **argv) {
     int num_threads = atoi(argv[6]);
     int num_threads_o = atoi(argv[7]);
 
-    sem_init(&sem, 0, num_threads);
+    // sem_init(&sem, 0, num_threads);
+    available = num_threads;
 
     key_t shmtoken = 1414;
     if (shmtoken == -1)
@@ -104,7 +107,9 @@ int main(int argc, char **argv) {
         if (info.matrix_num == 0) {
             rcvq[0][rcnt[0]] = info.row_idx;
             for (int r = 0; r < rcnt[1]; ++r) {
-                sem_wait(&sem);
+                // sem_wait(&sem);
+                while (!available);
+                available--;
                 thread_args *targs = malloc(sizeof(thread_args));
                 targs->i = rcvq[0][rcnt[0]];
                 targs->j = rcvq[1][r];
@@ -115,7 +120,9 @@ int main(int argc, char **argv) {
         } else {
             rcvq[1][rcnt[1]] = info.row_idx;
             for (int r = 0; r < rcnt[0]; ++r) {
-                sem_wait(&sem);
+                // sem_wait(&sem);
+                while (!available);
+                available--;
                 thread_args *targs = malloc(sizeof(thread_args));
                 targs->i = rcvq[0][r];
                 targs->j = rcvq[1][rcnt[1]];
@@ -146,7 +153,7 @@ int main(int argc, char **argv) {
     if (num_threads == 1 && num_threads_o == 1)
     {
         FILE *fcsv = fopen(csv, "w+");
-        fprintf(fcsv, "%s,%s,%s\n", "P1", "P2", "Time");
+        fprintf(fcsv, "%s,%s,%s\n", "P2", "P1", "Time");
         fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
     }
     else
@@ -155,7 +162,7 @@ int main(int argc, char **argv) {
         fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
     }
 
-    sem_destroy(&sem);
+    // sem_destroy(&sem);
     msgctl(msgqid, IPC_RMID, NULL);
     shmctl(shmid, IPC_RMID, NULL);
 }

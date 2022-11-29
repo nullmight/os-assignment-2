@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/ipc.h>
 
 const int BUFF = 50;
 
@@ -19,7 +20,7 @@ int main(int argc, char **argv) {
     out = argv[6];
 
     char csv[2][10];
-    for (int cnt = 1; cnt <= 5; ++cnt) {
+    for (int cnt = 1; cnt <= 3; ++cnt) {
         snprintf(csv[0], sizeof(csv[0]), "P1_%d.csv", cnt);
         snprintf(csv[1], sizeof(csv[1]), "P2_%d.csv", cnt);
 
@@ -38,8 +39,8 @@ int main(int argc, char **argv) {
                 }
                 wait(NULL);
                 wait(NULL);
-
-                if (nt2 >= 25)
+                printf("%d, %d completed.\n", nt1, nt2);
+                if (nt2 >= 30)
                     nt2 += 9;
                 if (nt2 >= 100)
                     nt2 += 90;
@@ -47,7 +48,7 @@ int main(int argc, char **argv) {
                     nt2 += 900;
             }
 
-            if (nt1 >= 25)
+            if (nt1 >= 30)
                 nt1 += 9;
             if (nt1 >= 100)
                 nt1 += 90;

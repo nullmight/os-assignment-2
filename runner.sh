@@ -4,7 +4,7 @@ gcc P1.c -o P1.out -lpthread
 gcc P2.c -o P2.out -lpthread
 gcc S.c -o S.out
 
-array=(50 100)
+array=(50)
 for n in "${array[@]}"; do
     for q in "${array[@]}"; do
         for m in "${array[@]}"; do
