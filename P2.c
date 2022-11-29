@@ -50,6 +50,9 @@ void *mult_rows(void *args) {
 }
 
 int main(int argc, char **argv) {
+    // struct timespec ta_start, ta_stop;
+    // clock_gettime(CLOCK_REALTIME, &ta_start);
+
     if (argc != 8) {
         printf("Invalid arguments!, argc = %d\n", argc);
         return 0;
@@ -179,6 +182,20 @@ int main(int argc, char **argv) {
     // sem_destroy(&sem);
     msgctl(msgqid, IPC_RMID, NULL);
     shmctl(shmid, IPC_RMID, NULL);
+
+
+    // clock_gettime(CLOCK_REALTIME, &ta_stop);
+    // long long ta_time = (ta_stop.tv_sec - ta_start.tv_sec) * 1000000000LL + (ta_stop.tv_nsec - ta_start.tv_nsec);
+    // FILE* ta_fp;
+    // if (n[0] == 5) {
+    //     ta_fp = fopen("TA_P1.csv", "w+");
+    //     fprintf(ta_fp, "%s,%s\n", "Size", "Time");
+    //     fprintf(ta_fp, "%d,%lld\n", q, ta_time);
+    // } else {
+    //     ta_fp = fopen("TA_P1.csv", "a");
+    //     fprintf(ta_fp, "%d,%lld\n", q, ta_time);
+    // }
+    // printf("P2 completed for %d, %d.\n", num_threads_o, num_threads);
     
     sptr[1] = 0;
 }

@@ -5,7 +5,7 @@ gcc P2.c -o P2.out -lpthread
 gcc S.c -o S.out
 gcc transpose.c -o transpose.out
 
-array=(10 50 100)
+array=(5)
 for n in "${array[@]}"; do
     q=$n
     m=$n
