@@ -17,7 +17,7 @@ def genMatrix():
 
     mat2 = np.random.randint(0,1000,size=(m,m2))
     print(mat2)
-    np.savetxt("inp2.txt",mat2.T,fmt='%i')
+    np.savetxt("inp2.txt",mat2,fmt='%i')
 
 
     matRes = np.matmul(mat,mat2)

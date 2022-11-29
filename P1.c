@@ -81,11 +81,6 @@ int main(int argc, char **argv) {
     // printf("Num_threads: %d\n", num_threads);
 
     key_t shmtoken = 1414;
-    if (shmtoken == -1)
-    {
-        perror("P1: Key");
-        return 1;
-    }
     int shmid = shmget(shmtoken, BUFF, 0666 | IPC_CREAT);
     if (shmid == -1)
     {
@@ -101,6 +96,20 @@ int main(int argc, char **argv) {
 
     key_t msgtoken = 4545;
     msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
+
+    key_t runtoken = 1832;
+    int runid = shmget(runtoken, 8, 0666);
+    if (runid == -1)
+    {
+        perror("P1 : Shared memory id");
+        return 1;
+    }
+    int *sptr = shmat(runid, 0, 0);
+    if (sptr == (void *)-1)
+    {
+        perror("P1 : Shared memory pointer");
+        return 1;
+    }
 
     pthread_t tid[num_threads];
 
@@ -193,6 +202,8 @@ int main(int argc, char **argv) {
         FILE *fcsv = fopen(csv, "a");
         fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
     }
+
+    sptr[0] = 0;
     // Print contents of shared memory
     // for (int r = 0; r < n[0] + n[1]; ++r) {
     //     for (int i = 0; i < q; ++i) {

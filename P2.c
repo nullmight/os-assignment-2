@@ -92,6 +92,21 @@ int main(int argc, char **argv) {
     key_t msgtoken = 4545;
     int msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
+    key_t runtoken = 1832;
+    int runid = shmget(runtoken, 8, 0666);
+    if (runid == -1)
+    {
+        perror("P1 : Shared memory id");
+        return 1;
+    }
+    int *sptr = shmat(runid, 0, 0);
+    if (sptr == (void *)-1)
+    {
+        perror("P1 : Shared memory pointer");
+        return 1;
+    }
+
+
     int rcnt[2] = {0, 0};
     int rcvq[2][N];
     int tcnt = 0;
@@ -161,8 +176,9 @@ int main(int argc, char **argv) {
         FILE *fcsv = fopen(csv, "a");
         fprintf(fcsv, "%d,%d,%lld\n", num_threads, num_threads_o, accum);
     }
-
     // sem_destroy(&sem);
     msgctl(msgqid, IPC_RMID, NULL);
     shmctl(shmid, IPC_RMID, NULL);
+    
+    sptr[1] = 0;
 }
