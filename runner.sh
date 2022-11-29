@@ -3,13 +3,15 @@ rm TA_P1_1.csv
 rm TA_P1_2.csv
 rm TA_P2_1.csv
 rm TA_P2_2.csv
+rm WT_1.csv
+rm WT_2.csv
 
 gcc P1.c -o P1.out -lpthread
 gcc P2.c -o P2.out -lpthread
 gcc S.c -o S.out
 gcc transpose.c -o transpose.out
 
-array=(50)
+array=(5 10 15 20 25)
 for n in "${array[@]}"; do
     q=$n
     m=$n

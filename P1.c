@@ -100,20 +100,6 @@ int main(int argc, char **argv) {
     key_t msgtoken = 4545;
     msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
-    key_t runtoken = 1835;
-    int runid = shmget(runtoken, 20, 0666);
-    if (runid == -1)
-    {
-        perror("P1 : Shared memory id");
-        return 1;
-    }
-    int *sptr = shmat(runid, 0, 0);
-    if (sptr == (void *)-1)
-    {
-        perror("P1 : Shared memory pointer");
-        return 1;
-    }
-
     pthread_t tid[num_threads];
 
     int num_th[2];
@@ -218,7 +204,6 @@ int main(int argc, char **argv) {
         fprintf(ta_fp, "%d,%lld\n", q, ta_time);
     }
 
-    sptr[0] = 0;
     // Print contents of shared memory
     // for (int r = 0; r < n[0] + n[1]; ++r) {
     //     for (int i = 0; i < q; ++i) {

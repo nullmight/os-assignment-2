@@ -96,21 +96,6 @@ int main(int argc, char **argv) {
     key_t msgtoken = 4545;
     int msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
-    key_t runtoken = 1835;
-    int runid = shmget(runtoken, 20, 0666);
-    if (runid == -1)
-    {
-        perror("P2 : Shared memory id");
-        return 1;
-    }
-    int *sptr = shmat(runid, 0, 0);
-    if (sptr == (void *)-1)
-    {
-        perror("P2 : Shared memory pointer");
-        return 1;
-    }
-
-
     int rcnt[2] = {0, 0};
     int rcvq[2][N];
     int tcnt = 0;
@@ -197,6 +182,4 @@ int main(int argc, char **argv) {
         fprintf(ta_fp, "%d,%lld\n", q, ta_time);
     }
     // printf("P2 completed for %d, %d.\n", num_threads_o, num_threads);
-
-    sptr[1] = 0;
 }

@@ -8,7 +8,7 @@
 #include <time.h>
 
 const int BUFF = 10;
-const int NUM_ITER = 1;
+const int NUM_ITER = 5;
 
 int n[2], q;
 char *in[2];
@@ -27,35 +27,20 @@ int main(int argc, char **argv) {
     }
     wait(NULL);
 
-    int *sptr;
-    int sid;
-    key_t stoken = 1835;
-    sid = shmget(stoken, 20, 0666 | IPC_CREAT);
-    if (sid == -1)
-    {
-        perror("Sched : Shared memory id");
-        return 1;
-    }
-    sptr = shmat(sid, 0, 0);
-    if (sptr == (void *)-1)
-    {
-        perror("Sched : Shared memory pointer");
-        return 1;
-    }
-
     for (int time_quantum = 1000; time_quantum <= 2000; time_quantum += 1000) {
         char wt_name[20];
         snprintf(wt_name, sizeof(wt_name), "WT_%d.csv", time_quantum / 1000);
         FILE *wt_fp;
         if (access(wt_name, F_OK) != 0) {
             wt_fp = fopen(wt_name, "w+");
-            fprintf(wt_fp, "%s,%s,%s\n", "Size", "P1", "P2");
+            fprintf(wt_fp, "%s,%s,%s,%s\n", "Size", "TQ", "P1", "P2");
         } else {
             wt_fp = fopen(wt_name, "a");
         }
         struct timespec wt_start1, wt_stop1;
         struct timespec wt_start2, wt_stop2;
         long long wt_sum1 = 0, wt_sum2 = 0;
+        int wt_cnt = 0;
 
         char csv[2][20];
         char ta_fname[2][20];
@@ -70,9 +55,11 @@ int main(int argc, char **argv) {
                 snprintf(nt1_str, sizeof(nt1_str), "%d", nt1);
                 
                 for (int nt2 = 1; nt2 <= n[0] * n[1]; ++nt2) {
+                    wt_cnt++;
+
                     char *nt2_str = malloc(BUFF);
                     snprintf(nt2_str, sizeof(nt2_str), "%d", nt2);
-
+                    
                     pid_t p1, p2;
                     if ((p1 = fork()) == 0) {
                         execlp("./P1.out", "P1", argv[1], argv[2], argv[3], in[0], in[1], csv[0], nt1_str, nt2_str, ta_fname[0], NULL);
@@ -81,8 +68,6 @@ int main(int argc, char **argv) {
                         execlp("./P2.out", "P2", argv[1], argv[2], argv[3], out, csv[1], nt2_str, nt1_str, ta_fname[1], NULL);
                     }
 
-                    sptr[0] = 1;
-                    sptr[1] = 1;
                     while (waitpid(p1, NULL, WNOHANG) == 0 && waitpid(p2, NULL, WNOHANG) == 0)
                     {
                         if (waitpid(p1, NULL, WNOHANG) == 0)
@@ -142,8 +127,8 @@ int main(int argc, char **argv) {
             }
             printf("Iteration %d completed\n", iter);
         }
-        wt_sum1 /= (NUM_ITER) * (n[0] + n[1]) * (n[0] * n[1]);
-        wt_sum2 /= (NUM_ITER) * (n[0] + n[1]) * (n[0] * n[1]);
-        fprintf(wt_fp, "%d,%lld,%lld\n", q, wt_sum1, wt_sum2);
+        wt_sum1 /= wt_cnt;
+        wt_sum2 /= wt_cnt;
+        fprintf(wt_fp, "%d,%d,%lld,%lld\n", q, time_quantum / 1000, wt_sum1, wt_sum2);
     }
 }
