@@ -100,8 +100,8 @@ int main(int argc, char **argv) {
     key_t msgtoken = 4545;
     msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
-    key_t runtoken = 1832;
-    int runid = shmget(runtoken, 8, 0666);
+    key_t runtoken = 1835;
+    int runid = shmget(runtoken, 20, 0666);
     if (runid == -1)
     {
         perror("P1 : Shared memory id");

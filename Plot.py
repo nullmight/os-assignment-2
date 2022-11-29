@@ -8,17 +8,20 @@ NUM_ITER = 3
 n, m, m2 = sys.argv[1:4]
 
 for tq in range(1, 3):
-    P1_list = []
-    for i in range(1, NUM_ITER + 1):
-        P1_data = pd.read_csv(f"P1_{tq}_{i}.csv")
-        P1_data = np.array(P1_data.groupby('P1')[['P1', 'Time']].min())
-        P1_list.append(P1_data)
-        # plt.plot(P1_data)
-        # plt.savefig(f"P1_{tq}_{i}", bbox_inches='tight')
-        # plt.show()
+    # P1_list = []
+    # for i in range(1, NUM_ITER + 1):
+    #     P1_data = pd.read_csv(f"P1_{tq}_{i}.csv")
+    #     P1_data = np.array(P1_data.groupby('P1')[['P1', 'Time']].min())
+    #     P1_list.append(P1_data)
+    #     # plt.plot(P1_data)
+    #     # plt.savefig(f"P1_{tq}_{i}", bbox_inches='tight')
+    #     # plt.show()
+    # P1_med = np.median(np.dstack(P1_list), -1)
+
+    P1_med = pd.read_csv(f"P1_{tq}_1.csv")
+    P1_med = np.array(P1_med.groupby('P1')[['P1', 'Time']].min())
 
     color1 = '#2E86E0'
-    P1_med = np.median(np.dstack(P1_list), -1)
     plt.plot(P1_med[:, 0], P1_med[:, 1], marker='.', linestyle = '--', color=color1)
     plt.title(
         f"P1, Time Quantum {tq}ms, {n}x{m} multiplied by {m}x{m2}", fontweight='bold')
@@ -31,17 +34,20 @@ for tq in range(1, 3):
     plt.savefig(f"P1_{n}_{m}_{m2}_{tq}.png", bbox_inches='tight')
     plt.show()
 
-    P2_list = []
-    for i in range(1, NUM_ITER + 1):
-        P2_data = pd.read_csv(f"P2_{tq}_{i}.csv")
-        P2_data = np.array(P2_data.groupby('P2')[['P2', 'Time']].min())
-        P2_list.append(P2_data)
-        # plt.plot(P2_data)
-        # plt.savefig(f"P2_{tq}_{i}", bbox_inches='tight')
-        # plt.show()
+    # P2_list = []
+    # for i in range(1, NUM_ITER + 1):
+    #     P2_data = pd.read_csv(f"P2_{tq}_{i}.csv")
+    #     P2_data = np.array(P2_data.groupby('P2')[['P2', 'Time']].min())
+    #     P2_list.append(P2_data)
+    #     # plt.plot(P2_data)
+    #     # plt.savefig(f"P2_{tq}_{i}", bbox_inches='tight')
+    #     # plt.show()
+    # P2_med = np.median(np.dstack(P2_list), -1)
+
+    P2_med = pd.read_csv(f"P2_{tq}_1.csv")
+    P2_med = np.array(P2_med.groupby('P2')[['P2', 'Time']].min())
 
     color2 = '#D43790'
-    P2_med = np.median(np.dstack(P2_list), -1)
     plt.plot(P2_med[:, 0], P2_med[:, 1], marker='.', linestyle = '--', color=color2)
     plt.title(f"P2, Time Quantum {tq}ms, {n}x{m} multiplied by {m}x{m2}", fontweight='bold')
     plt.xlabel('Number of threads in P2', fontweight='bold', color=color2)

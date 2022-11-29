@@ -96,17 +96,17 @@ int main(int argc, char **argv) {
     key_t msgtoken = 4545;
     int msgqid = msgget(msgtoken, 0644 | IPC_CREAT);
 
-    key_t runtoken = 1832;
-    int runid = shmget(runtoken, 8, 0666);
+    key_t runtoken = 1835;
+    int runid = shmget(runtoken, 20, 0666);
     if (runid == -1)
     {
-        perror("P1 : Shared memory id");
+        perror("P2 : Shared memory id");
         return 1;
     }
     int *sptr = shmat(runid, 0, 0);
     if (sptr == (void *)-1)
     {
-        perror("P1 : Shared memory pointer");
+        perror("P2 : Shared memory pointer");
         return 1;
     }
 
