@@ -10,7 +10,7 @@
 #include <sys/sem.h>
 #include <semaphore.h>
 
-#define N 50
+#define N 200
 
 int n[2];
 int q;

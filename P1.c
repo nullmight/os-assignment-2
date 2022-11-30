@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
     int num_threads = atoi(argv[7]);
     int num_threads_o = atoi(argv[8]);
     char *ta_fname = argv[9];
+    // printf("n:%d, q:%d, m:%d\n", n[0], q, n[1]);
 
     FILE *fp[2];
     for (int i = 0; i < 2; ++i) {

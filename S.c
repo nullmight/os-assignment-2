@@ -55,19 +55,19 @@ int main(int argc, char **argv) {
 
         int sim_cnt = 0;
 
-        char csv[2][20];
+        char csv[2][40];
         char ta_fname[2][20];
-        for (int iter = 1; iter <= NUM_ITER; ++iter) {
+        for (int iter = 1; iter <= 1; ++iter) {
             snprintf(csv[0], sizeof(csv[0]), "P1_%d_%d_%d_%d_%d.csv", n[0], q, n[1], time_quantum, iter);
             snprintf(csv[1], sizeof(csv[1]), "P2_%d_%d_%d_%d_%d.csv", n[0], q, n[1], time_quantum, iter);
             snprintf(ta_fname[0], sizeof(ta_fname[0]), "TA_P1_%d.csv", time_quantum);
             snprintf(ta_fname[1], sizeof(ta_fname[1]), "TA_P2_%d.csv", time_quantum);
 
-            for (int nt1 = 1; nt1 <= n[0] + n[1]; ++nt1) {
+            for (int nt1 = 10; nt1 <= 10; ++nt1) {
                 char *nt1_str = malloc(BUFF);
                 snprintf(nt1_str, sizeof(nt1_str), "%d", nt1);
                 
-                for (int nt2 = 1; nt2 <= n[0] * n[1]; ++nt2) {
+                for (int nt2 = 10; nt2 <= 10; ++nt2) {
                     sim_cnt++;
 
                     char *nt2_str = malloc(BUFF);

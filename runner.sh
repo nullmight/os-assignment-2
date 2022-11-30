@@ -13,23 +13,36 @@ gcc P2.c -o P2.out -lpthread
 gcc S.c -o S.out
 gcc transpose.c -o transpose.out
 
-array=(5 10 15 20 25 30 35 40 45 50)
-for n in "${array[@]}"; do
-    q=$n
-    m=$n
-    python3 MatrixGen.py $n $q $m
-    wait $!
-    ./S.out $n $m $q inp1.txt inp2.txt out.txt
-    wait $!
-    python3 Plot.py $n $q $m
-    wait $!
-    if cmp --silent -- "out.txt" "res.txt"; then
-        echo "Output matrix is correct"
-    else
-        echo "Incorrect output matrix"
-        break
-    fi
-    echo $n $q $m done
+# array=(5 10 15 20 25 30 35 40 45 50)
+# for n in "${array[@]}"; do
+#     q=$n
+#     m=$n
+#     python3 MatrixGen.py $n $q $m
+#     wait $!
+#     ./S.out $n $q $m inp1.txt inp2.txt out.txt
+#     wait $!
+#     python3 Plot.py $n $q $m
+#     wait $!
+#     if cmp --silent -- "out.txt" "res.txt"; then
+#         echo "Output matrix is correct"
+#     else
+#         echo "Incorrect output matrix"
+#         break
+#     fi
+#     echo $n $q $m done
 
-done
-python3 TotPlot.py
+# done
+# python3 TotPlot.py
+
+n=100
+q=49
+m=75
+python3 MatrixGen.py $n $q $m
+wait $!
+./S.out $n $q $m inp1.txt inp2.txt out.txt
+wait $!
+if cmp --silent -- "out.txt" "res.txt"; then
+    echo "Output matrix is correct"
+else
+    echo "Incorrect output matrix"
+fi
